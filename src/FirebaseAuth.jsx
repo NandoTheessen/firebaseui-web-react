@@ -1,20 +1,3 @@
-/**
- * Copyright 2017 Google Inc. All Rights Reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-// @flow
-
 import React from 'react';
 
 // Global ID for the element.
@@ -27,12 +10,6 @@ let firebaseUiDeletion = Promise.resolve();
  * React Component wrapper for the FirebaseUI Auth widget.
  */
 export default class FirebaseAuth extends React.Component {
-  /**
-   * Constructor  Firebase Auth UI component
-   *
-   * @param {Object} props - Additional object properties.
-   * @constructor
-   */
   constructor(props) {
     super(props);
 
@@ -56,66 +33,49 @@ export default class FirebaseAuth extends React.Component {
 
     // Wait in case the firebase UI instance is being deleted.
     // This can happen if you unmount/remount the element quickly.
-    return firebaseUiDeletion.then(() => {
-      // Get or Create a firebaseUI instance.
-      this.firebaseUiWidget = firebaseui.auth.AuthUI.getInstance()
-           || new firebaseui.auth.AuthUI(this.firebaseAuth);
-      if (this.uiConfig.signInFlow === 'popup') {
-        this.firebaseUiWidget.reset();
-      }
-
-      // We track the auth state to reset firebaseUi if the user signs out.
-      this.userSignedIn = false;
-      this.unregisterAuthObserver = this.firebaseAuth.onAuthStateChanged((user) => {
-        if (!user && this.userSignedIn) {
+    return firebaseUiDeletion
+      .then(() => {
+        // Get or Create a firebaseUI instance.
+        this.firebaseUiWidget =
+          firebaseui.auth.AuthUI.getInstance() || new firebaseui.auth.AuthUI(this.firebaseAuth);
+        if (this.uiConfig.signInFlow === 'popup') {
           this.firebaseUiWidget.reset();
         }
-        this.userSignedIn = !!user;
-      });
 
-      // Trigger the callback if any was set.
-      if (this.uiCallback) {
-        this.uiCallback(this.firebaseUiWidget);
-      }
+        // We track the auth state to reset firebaseUi if the user signs out.
+        this.userSignedIn = false;
+        this.unregisterAuthObserver = this.firebaseAuth.onAuthStateChanged((user) => {
+          if (!user && this.userSignedIn) {
+            this.firebaseUiWidget.reset();
+          }
+          this.userSignedIn = !!user;
+        });
 
-      // Render the firebaseUi Widget.
-      this.firebaseUiWidget.start('#' + ELEMENT_ID, this.uiConfig);
-    });
+        // Trigger the callback if any was set.
+        if (this.uiCallback) {
+          this.uiCallback(this.firebaseUiWidget);
+        }
+
+        // Render the firebaseUi Widget.
+        this.firebaseUiWidget.start('#' + ELEMENT_ID, this.uiConfig);
+      })
+      .catch((e) => console.log('Caught you!'));
   }
 
   /**
    * @inheritDoc
    */
   componentWillUnmount() {
-    firebaseUiDeletion = firebaseUiDeletion.then(() => {
-      this.unregisterAuthObserver();
-      return this.firebaseUiWidget.delete();
-    });
+    firebaseUiDeletion = firebaseUiDeletion
+      .then(() => {
+        this.unregisterAuthObserver();
+        return this.firebaseUiWidget.delete();
+      })
+      .catch((e) => console.log('Caught you!'));
     return firebaseUiDeletion;
   }
 
-  /**
-   * Properties types.
-   */
-  props: {
-    // The Firebase UI Web UI Config object.
-    // See: https://github.com/firebase/firebaseui-web#configuration
-    uiConfig: Object,
-    // The Firebase App auth instance to use.
-    firebaseAuth: Object,
-    // Callback that will be passed the FirebaseUi instance before it is
-    // started. This allows access to certain configuration options such as
-    // disableAutoSignIn().
-    uiCallback?: Function,
-    className?: String,
-  };
-
-  /**
-   * @inheritDoc
-   */
   render() {
-    return (
-      <div className={this.className} id={ELEMENT_ID}/>
-    );
+    return <div className={this.className} id={ELEMENT_ID} />;
   }
 }

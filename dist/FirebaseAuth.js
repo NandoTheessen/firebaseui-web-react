@@ -60,6 +60,8 @@ var FirebaseAuth = function (_React$Component) {
       }
 
       _this2.firebaseUiWidget.start('#' + ELEMENT_ID, _this2.uiConfig);
+    }).catch(function (e) {
+      return console.log('Caught you!');
     });
   };
 
@@ -69,6 +71,8 @@ var FirebaseAuth = function (_React$Component) {
     firebaseUiDeletion = firebaseUiDeletion.then(function () {
       _this3.unregisterAuthObserver();
       return _this3.firebaseUiWidget.delete();
+    }).catch(function (e) {
+      return console.log('Caught you!');
     });
     return firebaseUiDeletion;
   };
